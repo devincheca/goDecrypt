@@ -43,39 +43,9 @@ func initDecrypt(w http.ResponseWriter, r *http.Request) {
 		panic("A valid nonce is required for decryption.")
 	}
 	message := decrypt(fromReq.Key, fromReq.EncryptedMessage, fromReq.Nonce)
-	resMessage := fmt.Sprintf("%x", message)
-	fmt.Print("{\"Message\":\"", resMessage, "\"}")
-	fmt.Fprint(w, "{\"Message\":\"", resMessage, "\"}")
+	fmt.Printf("{\"Message\":\"%s\"}", message)
+	fmt.Fprintf(w, "{\"Message\":\"%s\"}", message)
 }
-
-/*func initEncrypt(w http.ResponseWriter, r *http.Request) {
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		panic(err)
-	}
-	var fromReq input
-	err = json.Unmarshal(body, &fromReq)
-	if err != nil {
-		panic(err)
-	}
-	if fromReq.Key == "" {
-		fmt.Print(w, "Request received without valid key.")
-		fmt.Fprint(w, "A key is required for encryption.")
-		panic("A key is required for encryption.")
-	}
-	if fromReq.Message == "" {
-		fmt.Print(w, "Request received with valid key and without message")
-		fmt.Fprint(w, "A message is required for encryption.")
-		panic("A message is required for encryption.")
-	}
-	eMessage, nonce := encrypt(fromReq.Key, fromReq.Message)
-	encryptMessage := fmt.Sprintf("%x", eMessage)
-	nonceString := fmt.Sprintf("%x", nonce)
-	fmt.Print("{\"EncryptedMessage\":\"", encryptMessage, "\",")
-	fmt.Print("\"Nonce\":\"", nonceString, "\"}")
-	fmt.Fprint(w, "{\"EncryptedMessage\":\"", encryptMessage, "\",")
-	fmt.Fprint(w, "\"Nonce\":\"", nonceString, "\"}")
-}*/
 
 func main() {
 	http.HandleFunc("/", initDecrypt)
@@ -126,6 +96,6 @@ func decrypt(reqKey, reqMessage, nonce string) []byte {
 	if err != nil {
 		panic(err.Error())
 	}
-	fmt.Printf("%s\n", plaintext)
+	//fmt.Printf("%s\n", plaintext)
 	return plaintext
 }
