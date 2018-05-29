@@ -55,30 +55,6 @@ func main() {
 	}
 }
 
-func encrypt(reqKey, reqMessage string) ([]byte, []byte) {
-	// When decoded the key should be 16 bytes (AES-128) or 32 (AES-256).
-	key, _ := hex.DecodeString(reqKey)
-	plaintext := []byte(reqMessage)
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		fmt.Println("Key needs to be 16 bytes (AES-128) compliant")
-		panic(err.Error())
-	}
-	// Never use more than 2^32 random nonces with a given key because of the risk of a repeat.
-	nonce := make([]byte, 12)
-	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		panic(err.Error())
-	}
-	aesgcm, err := cipher.NewGCM(block)
-	if err != nil {
-		panic(err.Error())
-	}
-	ciphertext := aesgcm.Seal(nil, nonce, plaintext, nil)
-	//fmt.Printf("%x\n", ciphertext)
-	return ciphertext, nonce
-}
-
 func decrypt(reqKey, reqMessage, nonce string) []byte {
 	// When decoded the key should be 16 bytes (AES-128) or 32 (AES-256).
 	key, _ := hex.DecodeString(reqKey)
