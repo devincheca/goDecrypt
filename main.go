@@ -14,7 +14,7 @@ import (
 )
 
 type input struct {
-	Key, EncryptMessage, Nonce string
+	Key, EncryptedMessage, Nonce string
 }
 
 func initDecrypt(w http.ResponseWriter, r *http.Request) {
@@ -32,7 +32,7 @@ func initDecrypt(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "A key is required for decryption.")
 		panic("A key is required for decryption.")
 	}
-	if fromReq.EncryptMessage == "" {
+	if fromReq.EncryptedMessage == "" {
 		fmt.Print(w, "Request received without encrypted message.")
 		fmt.Fprint(w, "A valid encrypted message is required for decryption.")
 		panic("A valid encrypted message is required for decryption.")
@@ -42,7 +42,7 @@ func initDecrypt(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "A valid nonce is required for decryption.")
 		panic("A valid nonce is required for decryption.")
 	}
-	message := decrypt(fromReq.Key, []byte(fromReq.EncryptMessage), []byte(fromReq.Nonce))
+	message := decrypt(fromReq.Key, fromReq.EncryptedMessage, fromReq.Nonce)
 	resMessage := fmt.Sprintf("%x", message)
 	fmt.Print("{\"Message\":\"", resMessage, "\"}")
 	fmt.Fprint(w, "{\"Message\":\"", resMessage, "\"}")
@@ -86,9 +86,8 @@ func main() {
 }
 
 func encrypt(reqKey, reqMessage string) ([]byte, []byte) {
-	// When decoded the key should be 16 bytes (AES-128)// or 32 (AES-256).
-	key, _ := hex.DecodeString(reqKey)//"6368616e676520746869732070617373776f726420746f206120736563726574")
-	//679098d868ee8129c72a23ec323d3febb513286c3cdf3c837adfe39721f50032
+	// When decoded the key should be 16 bytes (AES-128) or 32 (AES-256).
+	key, _ := hex.DecodeString(reqKey)
 	plaintext := []byte(reqMessage)
 
 	block, err := aes.NewCipher(key)
@@ -97,7 +96,6 @@ func encrypt(reqKey, reqMessage string) ([]byte, []byte) {
 		panic(err.Error())
 	}
 	// Never use more than 2^32 random nonces with a given key because of the risk of a repeat.
-//	nonce, _ := hex.DecodeString("afb8a7579bf971db9f8ceeed")//nonce, _ := hex.DecodeString("TestNonce123456789876543")
 	nonce := make([]byte, 12)
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
 		panic(err.Error())
@@ -111,11 +109,11 @@ func encrypt(reqKey, reqMessage string) ([]byte, []byte) {
 	return ciphertext, nonce
 }
 
-func decrypt(reqKey string, reqMessage, nonce []byte) []byte {
+func decrypt(reqKey, reqMessage, nonce string) []byte {
 	// When decoded the key should be 16 bytes (AES-128) or 32 (AES-256).
-	key, _ := hex.DecodeString(reqKey)//"6368616e676520746869732070617373776f726420746f206120736563726574")
-	ciphertext := reqMessage//, _ := hex.DecodeString(reqMessage)//"c3aaa29f002ca75870806e44086700f62ce4d43e902b3888e23ceff797a7a471")
-	//nonce, _ := hex.DecodeString("afb8a7579bf971db9f8ceeed")//nonce, _ := hex.DecodeString("TestNonce123456789876543")//nonce := make([]byte, 12)//, _ := hex.DecodeString("64a9433eae7ccceee2fc0eda")
+	key, _ := hex.DecodeString(reqKey)
+	ciphertext, _ := hex.DecodeString(reqMessage)
+	reqNonce, _ := hex.DecodeString(nonce)
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err.Error())
@@ -124,7 +122,7 @@ func decrypt(reqKey string, reqMessage, nonce []byte) []byte {
 	if err != nil {
 		panic(err.Error())
 	}
-	plaintext, err := aesgcm.Open(nil, nonce, ciphertext, nil)
+	plaintext, err := aesgcm.Open(nil, reqNonce, ciphertext, nil)
 	if err != nil {
 		panic(err.Error())
 	}
