@@ -42,13 +42,13 @@ func initDecrypt(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "A valid nonce is required for decryption.")
 		panic("A valid nonce is required for decryption.")
 	}
-	message := decrypt(fromReq.Key, []byte(fromReq.EncryptMessage), []byte(fromReq.Nonce))
+	message := decrypt(fromReq.Key, fromReq.EncryptMessage, fromReq.Nonce)
 	resMessage := fmt.Sprintf("%x", message)
 	fmt.Print("{\"Message\":\"", resMessage, "\"}")
 	fmt.Fprint(w, "{\"Message\":\"", resMessage, "\"}")
 }
 
-/*func initEncrypt(w http.ResponseWriter, r *http.Request) {
+func initEncrypt(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		panic(err)
@@ -75,7 +75,7 @@ func initDecrypt(w http.ResponseWriter, r *http.Request) {
 	fmt.Print("\"Nonce\":\"", nonceString, "\"}")
 	fmt.Fprint(w, "{\"EncryptedMessage\":\"", encryptMessage, "\",")
 	fmt.Fprint(w, "\"Nonce\":\"", nonceString, "\"}")
-}*/
+}
 
 func main() {
 	http.HandleFunc("/", initDecrypt)
