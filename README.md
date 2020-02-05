@@ -6,10 +6,6 @@ https://github.com/devincheca/goEncrypt
 
 it returns the decrypted message formatted as JSON
 
-try it for yourself at:
-
-18.220.144.123:3000
-
 with a POST request with the following JSON:
 
 {
